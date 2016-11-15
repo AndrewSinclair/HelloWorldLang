@@ -13,7 +13,7 @@ namespace HelloWorld
         private static Evaler _evaler { get; set; }
         private static Printer _printer { get; set; }
 
-        public Program()
+        static void InitPipelineComponents()
         {
             _lexer = new Lexer();
             _parser = new Parser();
@@ -49,8 +49,11 @@ namespace HelloWorld
             return _printer.Print(result);
         }
 
+
         static void Main(string[] args)
         {
+            InitPipelineComponents();
+
             var inputLine = Prompt(null);
 
             while (!IsExitDetected(inputLine))
@@ -62,7 +65,7 @@ namespace HelloWorld
                 }
                 catch (Exception e)
                 {
-
+                    
                 }
 
                 inputLine = Prompt(null);

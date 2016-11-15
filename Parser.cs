@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Token.TokenType;
 
 namespace HelloWorld
 {
@@ -12,69 +11,133 @@ namespace HelloWorld
         private List<Token> tokens;
         private int pointer;
 
-        private readonly Token CurrToken {
-            get
+
+        private Token Peek()
+        {
+            if (pointer < tokens.Count)
             {
-                return tokens[pointer]; 
+                return tokens[pointer];
+            }
+            else
+            {
+                return new Token { Type = Token.TokenType.Eof };
+            }
+        }
+
+        private Token GetToken()
+        {
+            Token currToken;
+            if (pointer < tokens.Count)
+            {
+                currToken = tokens[pointer];
+                pointer++;
+            }
+            else
+            {
+                currToken = new Token { Type = Token.TokenType.Eof };
+            }
+
+            return currToken;
+        }
+
+        private void Expr(AST parent)
+        {
+            /*
+             * expr := (term (PLUS|MINUS term)*)
+             * */
+
+            /*
+             * 
+             * AST ast = new AST();
+             * 
+             * ast.left = term()
+             * 
+             * while peek in (+ , -)
+             *   ast.value = (+, -)
+             *   ast.right = term()
+             */
+
+            Token currToken;
+
+            Term(parent);
+
+            currToken = Peek();
+
+            while (currToken.Type == Token.TokenType.Add || currToken.Type == Token.TokenType.Sub)
+            {
+                // get add or sub
+                currToken = GetToken();
+                parent.Value = currToken;
+
+                Term(parent);
+
+                currToken = Peek();
             }
         }
 
         private void Term(AST parent)
         {
-            if (CurrToken.Type == TokenType.LParen)
+            /*
+             * term := (factor (MULT|DIV factor)*)
+             * */
+
+            Token currToken;
+
+            Factor(parent);
+
+            currToken = Peek();
+
+            while (currToken.Type == Token.TokenType.Mult || currToken.Type == Token.TokenType.Div)
             {
-                parent.children.add(Eat(TokenType.LParen));
+                //Get Mult or Div
+                currToken = GetToken();
+                parent.Value = currToken;
 
-                Term(parent);
-            }
-            Token operandA = Eat(TokenType.Int);
-            Token op;
+                Factor(parent);
 
-            switch (CurrToken.Type)
-            {
-                case TokenType.Add:
-                    op = Eat(TokenType.Add);
-                    break;
-
-                case TokenType.Sub:
-                    op = Eat(TokenType.Sub);
-                    break;
-
-                case TokenType.Mult:
-                    op = Eat(TokenType.Mult);
-                    break;
-
-                case TokenType.Div:
-                    op = Eat(TokenType.Div);
-                    break;
-            }
-
-            Token operandB = Eat(TokenType.Int);
-
-            parent.Children.Add(operandA);
-            parent.Children.Add(op);
-            parent.Children.Add(operandB);
+                currToken = Peek();
+            };
         }
 
-        public string Parse(List<Token> tokens)
+        private void Factor(AST parent)
+        {
+            /*
+             * factor := LPAREN expr RPAREN | INT
+             * */
+
+            Token currToken = Peek();
+
+            AST exp = new AST();
+
+            if (currToken.Type == Token.TokenType.LParen)
+            {
+                GetToken();
+                Expr(exp);
+                GetToken(); //DeQueue RParen
+
+                parent.Children.Add(exp);
+            }
+            else
+            {
+                currToken = GetToken();
+                exp.Value = currToken;
+
+                parent.Children.Add(exp);
+            }
+        }
+
+        public AST Parse(List<Token> tokens)
         {
             this.tokens = tokens;
             this.pointer = 0;
 
             Token currToken = this.tokens[pointer];
-
             AST program = new AST();
 
-            while (currToken.Type != TokenType.Eof)
-            {
+            Expr(program);
 
-                if (currToken.Type == TokenType.Int)
-                {
-                    Term(program);
-                }
-            }
-
-            return String.Join(",", tokens.ToArray().Select(x => x.ToString()));
+            //return String.Join(",", tokens.ToArray().Select(x => x.ToString()));
+            return program;
         }
     }
 }

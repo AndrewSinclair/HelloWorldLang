@@ -36,7 +36,7 @@ namespace HelloWorld
         {
             pointer++;
 
-            if (pointer > program.Length)
+            if (pointer > program.Length - 1)
             {
                 return (char)0;
             }
@@ -47,6 +47,11 @@ namespace HelloWorld
         private Token GetNext()
         {
             Token nextToken = new Token();
+
+            if (pointer > program.Length - 1)
+            {
+                return new Token() { Type = Token.TokenType.Eof, Value = "EOF" };
+            }
 
             char currentChar = this.program[pointer];
 
@@ -96,11 +101,13 @@ namespace HelloWorld
                 if (currentChar == '(')
                 {
                     nextToken.Type = Token.TokenType.LParen;
-                    nextToken.Value = '(';
+                    nextToken.Value = "(";
                 } else {
                     nextToken.Type = Token.TokenType.RParen;
-                    nextToken.Value = ')';
+                    nextToken.Value = ")";
                 }
+
+                pointer++;
             }
             else
             {
@@ -120,9 +127,9 @@ namespace HelloWorld
             var tokens = new List<Token>();
 
             while (token.Type != Token.TokenType.Eof) {
-                token = GetNext();
-
                 tokens.Add(token);
+
+                token = GetNext();
             }
 
             return tokens;

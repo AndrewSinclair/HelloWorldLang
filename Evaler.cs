@@ -8,9 +8,9 @@ namespace HelloWorld
 {
     class Evaler
     {
-        public string Eval(string input)
+        public string Eval(AST ast)
         {
-            return input;
+            return "This built some kind of tree";
         }
     }
 }

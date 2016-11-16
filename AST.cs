@@ -9,11 +9,7 @@ namespace HelloWorld
     class AST
     {
         public Token Value { get; set; }
-        public List<AST> Children { get; set; }
-
-        public AST()
-        {
-            this.Children = new List<AST>();
-        }
+        public AST Left { get; set; }
+        public AST Right{ get; set; }
     }
 }

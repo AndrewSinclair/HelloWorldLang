@@ -40,26 +40,15 @@ namespace HelloWorld
             return currToken;
         }
 
-        private void Expr(AST parent)
+        private AST Expr()
         {
             /*
              * expr := (term (PLUS|MINUS term)*)
              * */
 
-            /*
-             * 
-             * AST ast = new AST();
-             * 
-             * ast.left = term()
-             * 
-             * while peek in (+ , -)
-             *   ast.value = (+, -)
-             *   ast.right = term()
-             */
-
             Token currToken;
 
-            Term(parent);
+            AST termTree = Term();
 
             currToken = Peek();
 
@@ -67,23 +56,22 @@ namespace HelloWorld
             {
                 // get add or sub
                 currToken = GetToken();
-                parent.Value = currToken;
-
-                Term(parent);
-
+                termTree = new AST { Value = currToken, Left = termTree, Right = Term() };
+                
                 currToken = Peek();
             }
+
+            return termTree;
         }
 
-        private void Term(AST parent)
+        private AST Term()
         {
             /*
              * term := (factor (MULT|DIV factor)*)
              * */
 
             Token currToken;
-
-            Factor(parent);
+            AST factorTree = Factor();
 
             currToken = Peek();
 
@@ -91,15 +79,15 @@ namespace HelloWorld
             {
                 //Get Mult or Div
                 currToken = GetToken();
-                parent.Value = currToken;
-
-                Factor(parent);
+                factorTree = new AST { Value = currToken, Left = factorTree, Right = Factor() };
 
                 currToken = Peek();
             };
+
+            return factorTree;
         }
 
-        private void Factor(AST parent)
+        private AST Factor()
         {
             /*
              * factor := LPAREN expr RPAREN | INT
@@ -111,19 +99,17 @@ namespace HelloWorld
 
             if (currToken.Type == Token.TokenType.LParen)
             {
-                GetToken();
-                Expr(exp);
+                GetToken(); //DeQueue LParen
+                exp = Expr();
                 GetToken(); //DeQueue RParen
-
-                parent.Children.Add(exp);
             }
             else
             {
                 currToken = GetToken();
                 exp.Value = currToken;
-
-                parent.Children.Add(exp);
             }
+
+            return exp;
         }
 
         public AST Parse(List<Token> tokens)
@@ -132,9 +118,7 @@ namespace HelloWorld
             this.pointer = 0;
 
             Token currToken = this.tokens[pointer];
-            AST program = new AST();
-
-            Expr(program);
+            AST program = Expr();
 
             //return String.Join(",", tokens.ToArray().Select(x => x.ToString()));
             return program;
